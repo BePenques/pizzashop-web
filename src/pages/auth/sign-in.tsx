@@ -1,9 +1,11 @@
+import { useMutation } from '@tanstack/react-query'
 import { Helmet } from 'react-helmet-async'
 import { useForm } from 'react-hook-form'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
 import { z } from 'zod'
 
+import { signIn } from '@/api/sign-in'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -22,11 +24,24 @@ export function SignIn() {
     formState: { isSubmitting },
   } = useForm<signInFormType>()
 
-  async function handleSignIn(data: signInFormType) {
-    console.log(data)
-    await new Promise((resolve) => setTimeout(resolve, 2000))
+  const { mutateAsync: authenticate } = useMutation({
+    // mutacao é qualquer ação que não é uma ação de retorno/listagem(mutação - post, put,delete)
+    mutationFn: signIn, // qual funcao vai ser disparada na mutação
+  })
 
-    toast.success('Enviamos um link de autenticação para seu e-mail')
+  async function handleSignIn(data: signInFormType) {
+    try {
+      await authenticate({ email: data.email })
+
+      toast.success('Enviamso um link de autenticação para seu e-mail', {
+        action: {
+          label: 'Reenviar',
+          onClick: () => handleSignIn(data),
+        },
+      })
+    } catch {
+      toast.error('Credenciais inválidas')
+    }
   }
 
   return (
