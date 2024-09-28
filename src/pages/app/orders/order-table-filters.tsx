@@ -1,6 +1,7 @@
 import { Search, X } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import {
   Select,
   SelectContent,
@@ -13,8 +14,8 @@ export function OrderTableFilters() {
   return (
     <form className="flex items-center gap-2">
       <span className="text-sm font-semibold">Filtros</span>
-      <input placeholder="ID  do pedido" className="h-8 w-auto" />
-      <input placeholder="Nome do cliente" className="h-8 w-[320px]" />
+      <Input placeholder="ID  do pedido" className="h-8 w-auto" />
+      <Input placeholder="Nome do cliente" className="h-8 w-[320px]" />
       <Select>
         <SelectTrigger className="h-8 w-[100px]">
           <SelectValue />
