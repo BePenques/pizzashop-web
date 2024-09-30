@@ -1,7 +1,7 @@
 import { useMutation } from '@tanstack/react-query'
 import { Helmet } from 'react-helmet-async'
 import { useForm } from 'react-hook-form'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import { z } from 'zod'
 
@@ -18,11 +18,16 @@ const signInForm = z.object({
 type signInFormType = z.infer<typeof signInForm>
 
 export function SignIn() {
+  const [searchParams] = useSearchParams()
   const {
     register,
     handleSubmit,
     formState: { isSubmitting },
-  } = useForm<signInFormType>()
+  } = useForm<signInFormType>({
+    defaultValues: {
+      email: searchParams.get('email') ?? '',
+    },
+  })
 
   const { mutateAsync: authenticate } = useMutation({
     // mutacao é qualquer ação que não é uma ação de retorno/listagem(mutação - post, put,delete)
