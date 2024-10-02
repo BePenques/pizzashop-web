@@ -1,10 +1,12 @@
 // export interface AccountMenuProps {}
 
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { Building, ChevronDown, LogOut } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 
 import { getManagedRestaurant } from '@/api/get-managed-restaurant'
 import { getProfile } from '@/api/get-profile'
+import { SignOut } from '@/api/sign-out'
 import { Skeleton } from '@/components/ui/skeleton'
 
 import { StoreProfileDialog } from './store-profile-dialog'
@@ -20,6 +22,8 @@ import {
 } from './ui/dropdown-menu'
 
 export function AccountMenu() {
+  const navigate = useNavigate()
+
   const { data: profile, isLoading: isLoadingProfile } = useQuery({
     queryKey: ['profile'],
     queryFn: getProfile,
@@ -32,6 +36,13 @@ export function AccountMenu() {
       queryFn: getManagedRestaurant,
       staleTime: Infinity,
     })
+
+  const { mutateAsync: signOutFn, isPending: isSigningOut } = useMutation({
+    mutationFn: SignOut,
+    onSuccess: () => {
+      navigate('/sign-in', { replace: true }) // substitui a rota ao inves de criar uma nova rota, para não ter a opção do usuario voltar
+    },
+  })
 
   return (
     <Dialog>
@@ -74,9 +85,15 @@ export function AccountMenu() {
             </DropdownMenuItem>
           </DialogTrigger>
 
-          <DropdownMenuItem className="dark:text-react-400 text-rose-500">
-            <LogOut className="mr-2 h-4 w-4" />
-            <span>Sair</span>
+          <DropdownMenuItem
+            asChild
+            className="dark:text-react-400 text-rose-500"
+            disabled={isSigningOut}
+          >
+            <button onClick={() => signOutFn()} className="w-full">
+              <LogOut className="mr-2 h-4 w-4" />
+              <span>Sair</span>
+            </button>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
