@@ -25,7 +25,7 @@ import { Textarea } from './ui/textarea'
 
 const storeProfileSchema = z.object({
   name: z.string().min(1),
-  description: z.string(),
+  description: z.string().nullable(),
 })
 
 type StoreProfileSchema = z.infer<typeof storeProfileSchema>
@@ -52,27 +52,42 @@ export function StoreProfileDialog() {
     },
   })
 
+  function updateManagedRestaurantCache({
+    name,
+    description,
+  }: StoreProfileSchema) {
+    const cached = queryClient.getQueryData<GetManagedRestaurantResponse>([
+      'managed-restaurant',
+    ])
+
+    if (cached) {
+      /* Feature de mutação do cache - alterando o cache de uma requisição http mesmo depois de ela já ter sido feita */
+      /* atualiza os dados de uma requisição q já foram retornados anteriormente,
+         a partir do sucesso de uma requisição que venha depois dela */
+      queryClient.setQueryData<GetManagedRestaurantResponse>(
+        ['managed-restaurant'],
+        {
+          ...cached,
+          name,
+          description,
+        },
+      )
+    }
+    return { cached } // retorna dados antes de serem atualizados
+  }
+
   const { mutateAsync: updateProfileFn } = useMutation({
     mutationFn: updateProfile,
-    onSuccess(_, { name, description }) {
-      const cached = queryClient.getQueryData<GetManagedRestaurantResponse>([
-        'managed-restaurant',
-      ])
-
-      if (cached) {
-        /* Feature de mutação do cache - alterando o cache de uma requisição http mesmo depois de ela já ter sido feita */
-        /* atualiza os dados de uma requisição q já foram retornados anteriormente,
-           a partir do sucesso de uma requisição que venha depois dela */
-        queryClient.setQueryData<GetManagedRestaurantResponse>(
-          ['managed-restaurant'],
-          {
-            ...cached,
-            name,
-            description,
-          },
-        )
+    onMutate({ name, description }) {
+      const { cached } = updateManagedRestaurantCache({ name, description })
+      return { previousProfile: cached }
+    }, // onMutate - dispara antes da requisição terminar - interface otimista
+    // onSuccess(_, { name, description }) {},
+    onError(_, __, context) {
+      if (context?.previousProfile) {
+        updateManagedRestaurantCache(context.previousProfile)
       }
-    },
+    }, // contexto - retorno da mutation
   })
 
   async function handleUpdateProfile(data: StoreProfileSchema) {
