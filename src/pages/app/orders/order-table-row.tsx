@@ -1,8 +1,11 @@
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { formatDistanceToNow } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { ArrowRight, Search, X } from 'lucide-react'
 import { useState } from 'react'
 
+import { cancelOrder } from '@/api/cancel-order'
+import { getOrdersResponse } from '@/api/get-orders'
 import { OrderStatus } from '@/components/order-status'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogTrigger } from '@/components/ui/dialog'
@@ -22,6 +25,38 @@ export interface orderTableRowProps {
 
 export function OrderTableRow({ order }: orderTableRowProps) {
   const [isDetailsOpen, setIsDetailsOpen] = useState(false)
+
+  const queryClient = useQueryClient()
+
+  const { mutateAsync: cancelOrderFn } = useMutation({
+    mutationFn: cancelOrder,
+    async onSuccess(_, { orderId }) {
+      const ordersListCache = queryClient.getQueriesData<getOrdersResponse>({
+        /* queries - plural pq são varias queries - orders.tsx linha 32 */
+        queryKey: ['orders'],
+      })
+
+      ordersListCache.forEach(([cacheKey, cacheData]) => {
+        if (!cacheData) {
+          return
+        }
+
+        queryClient.setQueryData<getOrdersResponse>(cacheKey, {
+          ...cacheData,
+          orders: cacheData?.orders.map((order) => {
+            if (order.orderId === orderId) {
+              return { ...order, status: 'canceled' }
+            }
+            return order
+          }),
+        })
+      })
+    },
+    /* Percorre todas as listas de pedidos carregadas,
+     que estão no cache, sejam filtradas/paginadas, 
+     e quando achar o pedido com mesmo ID, vai trocar o status para cancelado - experiencia veloz para o usuario */
+  })
+
   return (
     <TableRow>
       <TableCell>
@@ -62,7 +97,12 @@ export function OrderTableRow({ order }: orderTableRowProps) {
         </Button>
       </TableCell>
       <TableCell>
-        <Button variant="ghost" size="xs">
+        <Button
+          onClick={() => cancelOrderFn({ orderId: order?.orderId })}
+          disabled={!['pending', 'processing'].includes(order.status)}
+          variant="ghost"
+          size="xs"
+        >
           <X className="h3 -w-3 mr-´2" />
           Cancelar
         </Button>
