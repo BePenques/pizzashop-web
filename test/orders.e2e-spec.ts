@@ -3,10 +3,10 @@ import { expect, test } from '@playwright/test'
 test('list orders', async ({ page }) => {
   await page.goto('/orders', { waitUntil: 'networkidle' })
 
-  expect(
+  await expect(
     page.getByRole('cell', { name: 'Customer-1', exact: true }),
   ).toBeVisible()
-  expect(page.getByRole('cell', { name: 'Customer-10' })).toBeVisible()
+  await expect(page.getByRole('cell', { name: 'Customer-10' })).toBeVisible()
 
   await page.waitForTimeout(250)
 })
@@ -55,7 +55,7 @@ test('filter by order id', async ({ page }) => {
 
   await page.getByRole('button', { name: 'Filtrar' }).click()
 
-  expect(page.getByRole('cell', { name: 'order-11' })).toBeVisible()
+  await expect(page.getByRole('cell', { name: 'order-11' })).toBeVisible()
 
   await page.waitForTimeout(250)
 })
@@ -66,7 +66,7 @@ test('filter by customer name', async ({ page }) => {
 
   await page.getByRole('button', { name: 'Filtrar' }).click()
 
-  expect(page.getByRole('cell', { name: 'Customer-11' })).toBeVisible()
+  await expect(page.getByRole('cell', { name: 'Customer-11' })).toBeVisible()
 
   await page.waitForTimeout(250)
 })
@@ -80,9 +80,7 @@ test('filter by status', async ({ page }) => {
 
   await page.getByRole('button', { name: 'Filtrar' }).click()
 
-  const tableRows = await page.getByRole('cell', { name: 'Pendente' }).all()
-
-  expect(tableRows).toHaveLength(10)
+  await expect(page.getByRole('cell', { name: 'Pendente' })).toHaveCount(10)
 
   await page.waitForTimeout(250)
 })
