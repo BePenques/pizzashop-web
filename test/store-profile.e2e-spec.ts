@@ -23,16 +23,4 @@ test('update profile successfully', async ({ page }) => {
   await page.waitForTimeout(250)
 
   expect(page.getByRole('button', { name: 'Rocket Pizza' })).toBeVisible()
-
-  // await page.getByLabel('Seu e-mail').fill('johndoe@example.com')
-
-  // await page.getByRole('button', { name: 'Acessar painel' }).click()
-
-  // const toast = page.getByText(
-  //   'Enviamos um link de autenticação para seu e-mail',
-  // )
-
-  // expect(toast).toBeVisible()
-
-  // await page.waitForTimeout(2000)
 })
