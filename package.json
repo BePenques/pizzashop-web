@@ -10,6 +10,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest"
+    
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
